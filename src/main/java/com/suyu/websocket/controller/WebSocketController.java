@@ -68,6 +68,16 @@ public class WebSocketController {
     }
 
     /**
+     * 获取当前在线用户数量
+     * @return
+     */
+    @RequestMapping("getOnlineNum")
+    public Integer getOnlineNum(){
+        //当前用户个数
+        int count = SocketServer.getOnlineNum();
+        return count;
+    }
+    /**
      * 获取当前在线用户
      * @return
      */

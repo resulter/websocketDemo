@@ -78,11 +78,17 @@ function connect(){
 	        
 	        
 	    ws.onmessage = function(evt) {
-            var content = $("#content").html();
-            $("#content").html(content+'<div style="text-align: right;margin-bottom: 8px">\n' +
-                '                        <p><q style="color: mediumorchid">服务端:</q><span>'+evt.data+ '</span></p>\n' +
-                '                    </div>\n' +
-                '                    <br/>');
+            var jsonStr = JSON.parse(evt.data);
+            //类型1为正常消息内容，类型2为登录用户总数，普通用户不予显示
+            if(jsonStr.messageType == 1) {
+                var content = $("#content").html();
+                $("#content").html(content + '<div style="text-align: right;margin-bottom: 8px">\n' +
+                    '                        <p><q style="color: mediumorchid">服务端:</q><span>' + jsonStr.messageContent + '</span></p>\n' +
+                    '                    </div>\n' +
+                    '                    <br/>');
+            }else if(jsonStr.messageType == 2){
+                // $("#sum").text(jsonStr.messageContent);
+            }
 	    };    
 	        
 	    ws.onclose = function(evt) {

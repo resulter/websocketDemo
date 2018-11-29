@@ -44,7 +44,7 @@
                     <form class="layui-form" action="">
                         <div class="layui-form-item">
                             <label class="layui-form-label">在线人:</label>
-                            <div class="layui-input-block">
+                            <div class="layui-input-block" id="userList">
                                 <input type="checkbox" th:each="user: ${users}"  name="check" th:title="${user}">
                             </div>
                         </div>
@@ -73,9 +73,9 @@
     </div>
 </div>
    <script type="text/javascript">
-
+       var form=null;
        layui.use('form', function () {
-           var form = layui.form;
+           form = layui.form;
        });
        function sendMsg(){
            var user = [];
@@ -155,12 +155,34 @@
                    alert("该浏览器不支持websocket");
                }
                ws.onmessage = function(evt) {
-                   var content = $("#content").html();
-                   $("#content").html(content+'<div style="text-align: right;margin-bottom: 8px">\n' +
-                       '                        <p><q style="color: mediumorchid;text-align: right">'+evt.data+ '</span></p>\n' +
-                       '                    </div>\n' +
-                       '                    <br/>');
-                   console.log(msg)
+                   console.log("evt: " + evt);
+                   //类型1为正常消息内容，类型2为登录用户总数
+                   let jsonStr = JSON.parse(evt.data);
+                   if(jsonStr.messageType == 1) {
+                       var content = $("#content").html();
+                       $("#content").html(content + '<div style="text-align: right;margin-bottom: 8px">\n' +
+                           '                        <p><q style="color: mediumorchid;text-align: right">' + jsonStr.messageContent + '</span></p>\n' +
+                           '                    </div>\n' +
+                           '                    <br/>');
+                   }else  if(jsonStr.messageType == 2){
+                       let s = jsonStr.messageContent.split("#");
+                       $("#sum").text(s[0]);
+                       let user = s[1];
+                       if(user.length>0) {
+                           user = user.substr(0, user.length - 1);
+                           let users = user.split(",");
+                           $("#userList").html("");
+                           for (let j = 0; j < users.length; j++) {
+                               let html = '<input type="checkbox" name="check" title="' +users[j]+'"><div class="layui-unselect layui-form-checkbox"><span>'+users[j]+'</span><i class="layui-icon layui-icon-ok"></i></div>';
+                               $("#userList").append(html);
+                               // alert(users[j]);
+                           }
+                           layui.use('form', function () {
+                               layui.form.render();;
+                           });
+                       }
+                   }
+                   console.log(msg);
                };
 
                ws.onclose = function(evt) {

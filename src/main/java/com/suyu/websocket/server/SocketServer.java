@@ -1,5 +1,7 @@
 package com.suyu.websocket.server;
 
+import com.suyu.websocket.domain.MessagePojo;
+import com.suyu.websocket.domain.ServerEncoder;
 import org.springframework.stereotype.Component;
 import javax.websocket.*;
 import javax.websocket.server.PathParam;
@@ -9,7 +11,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-@ServerEndpoint(value = "/socketServer/{userid}")
+@ServerEndpoint(value = "/socketServer/{userid}", encoders = { ServerEncoder.class })
 @Component
 public class SocketServer {
 
@@ -27,6 +29,7 @@ public class SocketServer {
 		this.session = session;
 		sessionPool.put(userid, session);
 		sessionIds.put(session.getId(), userid);
+		sendOnlineNum(userid);
 	}
 
 	/**
@@ -46,6 +49,9 @@ public class SocketServer {
 	public void onClose(){
 		sessionPool.remove(sessionIds.get(session.getId()));
 		sessionIds.remove(session.getId());
+
+		sendOnlineNum(session.getId());
+
 	}
 
 	/**
@@ -67,8 +73,29 @@ public class SocketServer {
 		Session s = sessionPool.get(userId);
 		if(s!=null){
 			try {
-				s.getBasicRemote().sendText(message);
-			} catch (IOException e) {
+				MessagePojo messagePojo = new MessagePojo();
+				messagePojo.setMessageContent(message);
+				messagePojo.setMessageType(1);
+				s.getBasicRemote().sendObject(messagePojo);
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
+	}
+
+	/**
+	 * 发送在线用户数量 ，服务端不算数
+	 * @param userId
+	 */
+	public  static  void sendOnlineNum(String userId){
+		Session s = sessionPool.get("niezhiliang9595");
+		if(s!=null){
+			try {
+				MessagePojo messagePojo = new MessagePojo();
+				messagePojo.setMessageContent(getOnlineNum() + "#" + getOnlineUsers());
+				messagePojo.setMessageType(2);
+				s.getBasicRemote().sendObject(messagePojo);
+			}catch (Exception e){
 				e.printStackTrace();
 			}
 		}
